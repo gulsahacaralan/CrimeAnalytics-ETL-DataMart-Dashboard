@@ -1,23 +1,28 @@
 DROP SEQUENCE FACT_CRIME_SEQ;
 
-CREATE SEQUENCE FACT_CRIME_SEQ
-    INCREMENT BY 1
-    START WITH 1
-    CACHE 20
-    NOORDER
-    NOCYCLE;
+-- TODO(migration): rewrite in PySpark: Oracle sequences do not exist in Spark; use Delta IDENTITY column or row_number()/monotonically_increasing_id(). Sequence properties were: INCREMENT BY 1, initial value 1, CACHE 20, NOORDER, NOCYCLE.
+--
+-- CREATE SEQUENCE FACT_CRIME_SEQ
+--     INCREMENT BY 1
+--     START WITH 1
+--     CACHE 20
+--     NOORDER
+--     NOCYCLE;
 
 
-CREATE OR REPLACE TRIGGER FACT_CRIME_TRIGGER
-    BEFORE INSERT ON FACT_CRIME
-    FOR EACH ROW
-BEGIN
-    :NEW.FACT_CRIME_KEY := FACT_CRIME_SEQ.NEXTVAL;  -- Auto-generating the Surrogate Key
-END;
-/
+-- TODO(migration): rewrite in PySpark: BEFORE-INSERT row trigger cannot be expressed in Spark SQL; surrogate key must be generated with Delta IDENTITY or monotonically_increasing_id() during load
+-- CREATE OR REPLACE TRIGGER FACT_CRIME_TRIGGER
+--     BEFORE INSERT ON FACT_CRIME
+--     FOR EACH ROW
+-- BEGIN
+--     :NEW.FACT_CRIME_KEY := FACT_CRIME_SEQ.NEXTVAL;  -- Auto-generating the Surrogate Key
+-- END;
+-- /
 
 
+-- TODO(migration): rewrite in PySpark: procedural PL/SQL procedure (INSERT ... SELECT aggregation with COMMIT) cannot be expressed in Spark SQL; implement as a PySpark aggregation job writing to a Delta table
 CREATE OR REPLACE PROCEDURE PR_FACT_CRIME AS
+-- BEGIN
 BEGIN
     -- Insert aggregated data into FACT_CRIME table
     INSERT INTO FACT_CRIME (
@@ -74,6 +79,7 @@ BEGIN
 END PR_FACT_CRIME;
 /
 
+-- TODO(migration): rewrite in PySpark: anonymous PL/SQL block invoking the procedure; call the equivalent PySpark job instead
 begin
     PR_FACT_CRIME;
 end;

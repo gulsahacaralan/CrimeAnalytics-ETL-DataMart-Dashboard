@@ -1,8 +1,9 @@
+-- TODO(migration): rewrite in PySpark: paket bildirimi PL/SQL prosedürel koddur; döngü/cursor/değişken mantığı Spark SQL'e çevrilemez.
 CREATE OR REPLACE PACKAGE transform_pkg AS
     -- Function declarations
-    FUNCTION get_year(p_date DATE) RETURN NUMBER;
-    FUNCTION get_month(p_date DATE) RETURN NUMBER;
-    FUNCTION get_quarter(p_date DATE) RETURN NUMBER;
+    FUNCTION get_year(p_date DATE) RETURN BIGINT;
+    FUNCTION get_month(p_date DATE) RETURN BIGINT;
+    FUNCTION get_quarter(p_date DATE) RETURN BIGINT;
 
     -- Procedure declarations
     PROCEDURE PR_TRANS_LOCATION;
@@ -14,22 +15,26 @@ END transform_pkg;
 /
 
 
+-- TODO(migration): rewrite in PySpark: paket gövdesi PL/SQL prosedürel koddur; döngü/cursor/değişken mantığı Spark SQL'e çevrilemez.
 CREATE OR REPLACE PACKAGE BODY transform_pkg AS
 
     -- Function to extract the year from a date
-    FUNCTION get_year(p_date DATE) RETURN NUMBER IS
+    FUNCTION get_year(p_date DATE) RETURN BIGINT IS
+    -- TODO(migration): rewrite in PySpark: prosedürel fonksiyon gövdesi (BEGIN bloğu) Spark SQL'e çevrilemez.
     BEGIN
         RETURN EXTRACT(YEAR FROM p_date);
     END get_year;
 
     -- Function to extract the month from a date
-    FUNCTION get_month(p_date DATE) RETURN NUMBER IS
+    FUNCTION get_month(p_date DATE) RETURN BIGINT IS
+    -- TODO(migration): rewrite in PySpark: prosedürel fonksiyon gövdesi (BEGIN bloğu) Spark SQL'e çevrilemez.
     BEGIN
         RETURN EXTRACT(MONTH FROM p_date);
     END get_month;
 
     -- Function to calculate the quarter based on the month of a date
-    FUNCTION get_quarter(p_date DATE) RETURN NUMBER IS
+    FUNCTION get_quarter(p_date DATE) RETURN BIGINT IS
+    -- TODO(migration): rewrite in PySpark: prosedürel fonksiyon gövdesi (BEGIN bloğu) Spark SQL'e çevrilemez.
     BEGIN
         RETURN CASE
                    WHEN EXTRACT(MONTH FROM p_date) IN (1, 2, 3) THEN 1
@@ -41,6 +46,7 @@ CREATE OR REPLACE PACKAGE BODY transform_pkg AS
 
     -- Procedure to transform location data
     PROCEDURE PR_TRANS_LOCATION IS
+    -- TODO(migration): rewrite in PySpark: prosedürel BEGIN bloğu ve MERGE/DML mantığı Spark SQL'e çevrilemez.
     BEGIN
         MERGE INTO TRANSFORM_LOCATION T
         USING GOOD_BAD_DATA G
@@ -63,6 +69,7 @@ CREATE OR REPLACE PACKAGE BODY transform_pkg AS
 
     -- Procedure to transform time data (including Reported and Closed dates)
     PROCEDURE PR_TRANS_TIME IS
+    -- TODO(migration): rewrite in PySpark: prosedürel BEGIN bloğu ve MERGE/DML mantığı Spark SQL'e çevrilemez.
     BEGIN
         -- For Reported Date
         MERGE INTO TRANSFORM_TIME T
@@ -107,6 +114,7 @@ CREATE OR REPLACE PACKAGE BODY transform_pkg AS
 
     -- Procedure to transform crime type data
     PROCEDURE PR_TRANS_CRIME_TYPE IS
+    -- TODO(migration): rewrite in PySpark: prosedürel BEGIN bloğu ve MERGE/DML mantığı Spark SQL'e çevrilemez.
     BEGIN
         MERGE INTO TRANSFORM_CRIME_TYPE T
         USING GOOD_BAD_DATA G
@@ -126,6 +134,7 @@ CREATE OR REPLACE PACKAGE BODY transform_pkg AS
 
     -- Procedure to transform police station data
     PROCEDURE PR_TRANS_POLICE_STATION IS
+    -- TODO(migration): rewrite in PySpark: prosedürel BEGIN bloğu ve MERGE/DML mantığı Spark SQL'e çevrilemez.
     BEGIN
         MERGE INTO TRANSFORM_POLICE_STATION T
         USING GOOD_BAD_DATA G
@@ -143,6 +152,7 @@ CREATE OR REPLACE PACKAGE BODY transform_pkg AS
 
     -- Procedure to transform crime status data
     PROCEDURE PR_TRANS_CRIME_STATUS IS
+    -- TODO(migration): rewrite in PySpark: prosedürel BEGIN bloğu ve MERGE/DML mantığı Spark SQL'e çevrilemez.
     BEGIN
         MERGE INTO TRANSFORM_CRIME_STATUS T
         USING GOOD_BAD_DATA G
@@ -161,6 +171,7 @@ END transform_pkg;
 /
 
 
+-- TODO(migration): rewrite in PySpark: anonim PL/SQL BEGIN bloğu prosedür çağrıları içerir; Spark SQL'e çevrilemez.
 BEGIN
     transform_pkg.PR_TRANS_LOCATION;
     transform_pkg.PR_TRANS_TIME;
@@ -169,3 +180,4 @@ BEGIN
     transform_pkg.PR_TRANS_CRIME_STATUS;
 END;
 /
+

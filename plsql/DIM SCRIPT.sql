@@ -50,10 +50,10 @@ DROP TABLE DIM_LOCATION;
 CREATE TABLE DIM_LOCATION(
 	region_key	INTEGER NOT NULL,
 	region_id	INTEGER,
-	region_name	VARCHAR2(25),
-	area	VARCHAR2(20),
-	city	VARCHAR2(20),
-	data_source	VARCHAR2(15),
+	region_name	STRING,
+	area	STRING,
+	city	STRING,
+	data_source	STRING,
 	-- Specify the PRIMARY KEY constraint for table "DIM_LOCATION".
 	-- This indicates which attribute(s) uniquely identify each row of data.
 	CONSTRAINT	pk_DIM_LOCATION PRIMARY KEY (region_key)
@@ -77,10 +77,10 @@ DROP TABLE DIM_CRIME_TYPE;
 CREATE TABLE DIM_CRIME_TYPE(
 	crime_type_key	INTEGER NOT NULL,
 	crime_id	INTEGER,
-	crime_type_name	VARCHAR2(20),
-	crime_category	VARCHAR2(15),
-	severity_level	VARCHAR2(8),
-	data_source	VARCHAR2(15),
+	crime_type_name	STRING,
+	crime_category	STRING,
+	severity_level	STRING,
+	data_source	STRING,
 	-- Specify the PRIMARY KEY constraint for table "DIM_CRIME_TYPE".
 	-- This indicates which attribute(s) uniquely identify each row of data.
 	CONSTRAINT	pk_DIM_CRIME_TYPE PRIMARY KEY (crime_type_key)
@@ -91,8 +91,8 @@ DROP TABLE DIM_POLICE_STATION;
 CREATE TABLE DIM_POLICE_STATION(
 	police_station_key	INTEGER NOT NULL,
 	station_id	INTEGER,
-	station_name	VARCHAR2(20),
-	data_source	VARCHAR2(15),
+	station_name	STRING,
+	data_source	STRING,
 	-- Specify the PRIMARY KEY constraint for table "DIM_POLICE_STATION".
 	-- This indicates which attribute(s) uniquely identify each row of data.
 	CONSTRAINT	pk_DIM_POLICE_STATION PRIMARY KEY (police_station_key)
@@ -102,8 +102,8 @@ DROP TABLE DIM_CRIME_STATUS;
 -- Create a Database table to represent the "DIM_CRIME_STATUS" entity.
 CREATE TABLE DIM_CRIME_STATUS(
 	crime_status_key	INTEGER NOT NULL,
-	crime_status	VARCHAR2(10),
-	data_source	VARCHAR2(15),
+	crime_status	STRING,
+	data_source	STRING,
 	-- Specify the PRIMARY KEY constraint for table "DIM_CRIME_STATUS".
 	-- This indicates which attribute(s) uniquely identify each row of data.
 	CONSTRAINT	pk_DIM_CRIME_STATUS PRIMARY KEY (crime_status_key)
@@ -157,65 +157,30 @@ ALTER TABLE FACT_CRIME ADD CONSTRAINT fk5_FACT_CRIME_to_DIM_CRIME_STATUS FOREIGN
 --------------------------------------------------------------
 -- End of DDL file auto-generation
 --------------------------------------------------------------
-DROP SEQUENCE DIM_LOCATION_SEQ;
 
--- Create sequence for DIM_LOCATION
-CREATE SEQUENCE DIM_LOCATION_SEQ
-    INCREMENT BY 1
-    START WITH 1
-    CACHE 20
-    NOORDER
-    NOCYCLE;
---
-DROP SEQUENCE DIM_TIME_SEQ;
--- Create sequence for DIM_TIME
-CREATE SEQUENCE DIM_TIME_SEQ
-    INCREMENT BY 1
-    START WITH 1
-    CACHE 20
-    NOORDER
-    NOCYCLE;
---
-DROP SEQUENCE DIM_CRIME_TYPE_SEQ;
+--------------------------------------------------------------
+-- Oracle sequence objects (and their DROP SEQUENCE statements) do not exist
+-- in Spark SQL and have been removed.
+-- TODO(migration): rewrite in PySpark: surrogate key generation must be done with
+-- row_number() / monotonically_increasing_id() over the source rows, or by using
+-- a Delta Lake IDENTITY column, for the dimension tables:
+-- DIM_LOCATION, DIM_TIME, DIM_CRIME_TYPE, DIM_POLICE_STATION, DIM_CRIME_STATUS.
+--------------------------------------------------------------
 
--- Create sequence for DIM_CRIME_TYPE
-CREATE SEQUENCE DIM_CRIME_TYPE_SEQ
-    INCREMENT BY 1
-    START WITH 1
-    CACHE 20
-    NOORDER
-    NOCYCLE;
-
---
-
-DROP SEQUENCE DIM_POLICE_STATION_SEQ;
--- Create sequence for DIM_POLICE_STATION
-CREATE SEQUENCE DIM_POLICE_STATION_SEQ
-    INCREMENT BY 1
-    START WITH 1
-    CACHE 20
-    NOORDER
-    NOCYCLE;
-
---
-
-DROP SEQUENCE DIM_CRIME_STATUS_SEQ;
--- Create sequence for DIM_CRIME_STATUS
-CREATE SEQUENCE DIM_CRIME_STATUS_SEQ
-    INCREMENT BY 1
-    START WITH 1
-    CACHE 20
-    NOORDER
-    NOCYCLE;
---
 -- Create trigger for auto-generating the surrogate key for DIM_CRIME_STATUS
 
+-- TODO(migration): rewrite in PySpark: Oracle BEFORE INSERT row triggers cannot run on Spark SQL;
+-- generate the surrogate key crime_status_key in the PySpark ingestion pipeline using
+-- row_number() / monotonically_increasing_id() or a Delta Lake IDENTITY column.
 CREATE OR REPLACE TRIGGER DIM_CRIME_STATUS_TRIGGER
     BEFORE INSERT ON DIM_CRIME_STATUS
     FOR EACH ROW
+    -- TODO(migration): rewrite in PySpark: procedural trigger body (PL/SQL block) is not
+    -- expressible in Spark SQL; key assignment must happen in PySpark code instead.
 BEGIN
+    -- TODO(migration): rewrite in PySpark: sequence-based key assignment is not supported in Spark;
+    -- use row_number() / monotonically_increasing_id() or a Delta IDENTITY column instead.
     :NEW.crime_status_key := DIM_CRIME_STATUS_SEQ.NEXTVAL;  -- Auto-generating the Surrogate Key
 END;
 --
-
 

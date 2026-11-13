@@ -1,3 +1,4 @@
+-- TODO(migration): rewrite in PySpark: Oracle PL/SQL package specification cannot be expressed in Spark SQL.
 CREATE OR REPLACE PACKAGE crime_data_pkg AS
     PROCEDURE Insert_Data_To_Staging_PRCS;
     PROCEDURE Insert_Data_To_Staging_PS_Wales;
@@ -9,8 +10,11 @@ END crime_data_pkg;
 
 
 
+-- TODO(migration): rewrite in PySpark: package body contains procedural logic (procedures, loops, cursors, variables) that must be rewritten in PySpark + Delta Lake.
+
 CREATE OR REPLACE PACKAGE BODY crime_data_pkg AS
 
+    -- TODO(migration): rewrite in PySpark: procedural INSERT block; sequence-based STAGING_CRIME_ID replaced with monotonically_increasing_id().
     -- Procedure to insert data from PRCS system into the staging table
     PROCEDURE Insert_Data_To_Staging_PRCS AS
     BEGIN
@@ -28,7 +32,7 @@ CREATE OR REPLACE PACKAGE BODY crime_data_pkg AS
             SOURCE_SYSTEM
         )
         SELECT 
-            STAGING_CRIME_SEQ.NEXTVAL,
+            monotonically_increasing_id() AS STAGING_CRIME_ID,
             pr.reported_crime_id, 
             pr.date_reported,
             ct.crime_type_desc,
@@ -48,11 +52,12 @@ CREATE OR REPLACE PACKAGE BODY crime_data_pkg AS
         JOIN 
             pl_police_employee pe ON pe.emp_id = pr.fk1_crime_type_id
         WHERE
-            pr.date_reported BETWEEN TO_DATE('2024-01-01', 'YYYY-MM-DD') AND TO_DATE('2024-12-31', 'YYYY-MM-DD');
+            pr.date_reported BETWEEN TO_DATE('2024-01-01', 'yyyy-MM-dd') AND TO_DATE('2024-12-31', 'yyyy-MM-dd');
 
         COMMIT;
     END Insert_Data_To_Staging_PRCS;
 
+    -- TODO(migration): rewrite in PySpark: procedural INSERT block; sequence-based STAGING_CRIME_ID replaced with monotonically_increasing_id().
     -- Procedure to insert data from PS_Wales system into the staging table
     PROCEDURE Insert_Data_To_Staging_PS_Wales AS
     BEGIN
@@ -70,7 +75,7 @@ CREATE OR REPLACE PACKAGE BODY crime_data_pkg AS
             SOURCE_SYSTEM
         )
         SELECT 
-            STAGING_CRIME_SEQ.NEXTVAL,
+            monotonically_increasing_id() AS STAGING_CRIME_ID,
             pr.reported_crime_id,
             pr.date_reported,
             ct.crime_type_desc,
@@ -90,11 +95,12 @@ CREATE OR REPLACE PACKAGE BODY crime_data_pkg AS
         JOIN 
             ps_police_employee pe ON pe.emp_id = pr.fk1_crime_type_id
         WHERE
-            pr.date_reported BETWEEN TO_DATE('2024-01-01', 'YYYY-MM-DD') AND TO_DATE('2024-12-31', 'YYYY-MM-DD');
+            pr.date_reported BETWEEN TO_DATE('2024-01-01', 'yyyy-MM-dd') AND TO_DATE('2024-12-31', 'yyyy-MM-dd');
 
         COMMIT;
     END Insert_Data_To_Staging_PS_Wales;
 
+    -- TODO(migration): rewrite in PySpark: procedural INSERT/statements not expressible in Spark SQL.
     -- Procedure to separate good and bad data from the staging table
     PROCEDURE COPY_GOOD_BAD_DATA AS
     BEGIN
@@ -119,9 +125,10 @@ CREATE OR REPLACE PACKAGE BODY crime_data_pkg AS
         DBMS_OUTPUT.PUT_LINE('Data validation and separation completed successfully.');
     END COPY_GOOD_BAD_DATA;
 
+    -- TODO(migration): rewrite in PySpark: procedural UPDATE statements, cursor loop and DBMS_RANDOM logic not expressible in Spark SQL; Oracle ROWID replaced with monotonically_increasing_id().
     -- Procedure to fix bad data dates (close_date and report_date)
     PROCEDURE FIX_BAD_DATA_DATES AS
-        v_random_crime_type VARCHAR2(50);
+        v_random_crime_type STRING;
         v_random_date DATE;
     BEGIN
         -- Step 1: Swap close_date and report_date where close_date < report_date
@@ -143,7 +150,7 @@ CREATE OR REPLACE PACKAGE BODY crime_data_pkg AS
 
         -- Step 3: Assign random crime types where crime_type is NULL
         FOR rec IN (
-            SELECT rowid AS row_id
+            SELECT monotonically_increasing_id() AS row_id
             FROM BAD_CRIME_DATA
             WHERE crime_type IS NULL
         ) LOOP
@@ -155,13 +162,12 @@ CREATE OR REPLACE PACKAGE BODY crime_data_pkg AS
                 WHEN DBMS_RANDOM.VALUE(0, 5) < 4 THEN 'Forgery'
                 ELSE 'Kidnapping'
             END
-            INTO v_random_crime_type
-            FROM DUAL;
+            INTO v_random_crime_type;
 
             -- Update the record with the random crime type
             UPDATE BAD_CRIME_DATA
             SET crime_type = v_random_crime_type
-            WHERE rowid = rec.row_id;
+            WHERE row_id = rec.row_id;
         END LOOP;
 
         DBMS_OUTPUT.PUT_LINE('Assigned random crime types for records with NULL crime_type.');
@@ -177,6 +183,7 @@ CREATE OR REPLACE PACKAGE BODY crime_data_pkg AS
         DBMS_OUTPUT.PUT_LINE('Bad data corrections completed successfully.');
     END FIX_BAD_DATA_DATES;
 
+    -- TODO(migration): rewrite in PySpark: procedural UPDATE statements not expressible in Spark SQL.
     -- Procedure to format data in GOOD_CRIME_DATA and BAD_CRIME_DATA
     PROCEDURE FIX_DATA_FORMAT AS
     BEGIN

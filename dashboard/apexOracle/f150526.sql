@@ -2027,7 +2027,7 @@ wwv_flow_imp_shared.create_invokeapi_comp_param(
 ,p_page_id=>9999
 ,p_name=>'p_username'
 ,p_direction=>'IN'
-,p_data_type=>'VARCHAR2'
+,p_data_type=>'STRING'
 ,p_has_default=>false
 ,p_display_sequence=>1
 ,p_value_type=>'EXPRESSION'
@@ -2064,7 +2064,7 @@ wwv_flow_imp_shared.create_invokeapi_comp_param(
 ,p_page_id=>9999
 ,p_name=>'p_username'
 ,p_direction=>'IN'
-,p_data_type=>'VARCHAR2'
+,p_data_type=>'STRING'
 ,p_has_default=>false
 ,p_display_sequence=>1
 ,p_value_type=>'ITEM'
@@ -2076,7 +2076,7 @@ wwv_flow_imp_shared.create_invokeapi_comp_param(
 ,p_page_id=>9999
 ,p_name=>'p_password'
 ,p_direction=>'IN'
-,p_data_type=>'VARCHAR2'
+,p_data_type=>'STRING'
 ,p_has_default=>false
 ,p_display_sequence=>2
 ,p_value_type=>'ITEM'
